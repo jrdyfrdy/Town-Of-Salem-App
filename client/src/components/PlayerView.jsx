@@ -86,6 +86,17 @@ export default function PlayerView({ gameState, timeLeft, socket, messages }) {
                 SILENCED (Blackmailed)
               </div>
             )}
+
+            {me?.team === "Mafia" && me?.mafiaMembers && me?.mafiaMembers.length > 0 && (
+              <div className="bg-red-950 bg-opacity-50 text-red-200 border border-red-800 p-3 rounded text-sm">
+                <p className="font-bold text-red-400 mb-1">Mafia Members:</p>
+                <ul className="list-disc list-inside pl-2">
+                  {me.mafiaMembers.map((m, idx) => (
+                    <li key={idx}>{m}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
@@ -117,7 +128,7 @@ export default function PlayerView({ gameState, timeLeft, socket, messages }) {
                 const canSelect =
                   me?.isAlive &&
                   p.isAlive &&
-                  (phase === "NIGHT" || phase === "DAY_VOTING") &&
+                  ((phase === "NIGHT" && me?.hasNightAction) || phase === "DAY_VOTING") &&
                   !actionConfirmed;
 
                 return (
@@ -150,7 +161,7 @@ export default function PlayerView({ gameState, timeLeft, socket, messages }) {
           </div>
 
           {/* Action Button Area */}
-          {(phase === "NIGHT" || phase === "DAY_VOTING") && me?.isAlive ? (
+          {( (phase === "NIGHT" && me?.hasNightAction) || phase === "DAY_VOTING") && me?.isAlive ? (
             actionConfirmed ? (
               <div className="w-full mt-6 bg-green-900 bg-opacity-40 text-green-400 py-3 rounded-lg font-bold text-center border border-green-600 shadow-inner flex items-center justify-center gap-2 tracking-widest">
                 <svg

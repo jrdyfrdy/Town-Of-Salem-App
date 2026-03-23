@@ -85,7 +85,7 @@ function App() {
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-purple-600"></div>
 
           <h1 className="text-4xl font-extrabold mb-2 tracking-tight">
-            Mafia Scum
+            Town of Maron
           </h1>
           <p className="text-gray-400 mb-8 font-medium">
             A Social Deduction Web Client

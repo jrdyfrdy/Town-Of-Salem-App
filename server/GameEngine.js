@@ -536,6 +536,11 @@ class GameEngine {
         continue;
       }
 
+      // Edge Case: Godfather Immutable to SK kill
+      if (kill.type === "SK" && victim.role.name === "Godfather") {
+        continue;
+      }
+
       // Edge Case: Alerting Veteran Immutable to All
       if (alerts.has(victim.id)) {
         continue;
@@ -610,6 +615,7 @@ class GameEngine {
     this.dayCount++;
     this.nightActions = {};
 
+    this.handleMafiosoPromotion();
     this.checkWinConditions();
   }
 
@@ -675,6 +681,23 @@ class GameEngine {
     }
   }
 
+  handleMafiosoPromotion() {
+    const players = Object.values(this.players);
+    const aliveGodfathers = players.filter((p) => p.isAlive && p.role?.name === "Godfather");
+
+    if (aliveGodfathers.length === 0) {
+      // Find an alive Mafioso and promote them
+      const aliveMafioso = players.find((p) => p.isAlive && p.role?.name === "Mafioso");
+      if (aliveMafioso) {
+        aliveMafioso.role = ROLES["GODFATHER"];
+        this.io.to(aliveMafioso.id).emit(
+          "system_message",
+          "The Godfather has died. You have been promoted to Godfather and now make the kill decisions."
+        );
+      }
+    }
+  }
+
   // Called when someone is voted out during the Day Phase
   executePlayer(playerId) {
     const executedPlayer = this.players[playerId];
@@ -685,6 +708,8 @@ class GameEngine {
       "system_message",
       `${executedPlayer.username} was executed by the town. They were a ${executedPlayer.role.name}.`,
     );
+
+    this.handleMafiosoPromotion();
 
     // Edge Case: Jester Win Condition
     if (executedPlayer.role.name === "Jester") {
@@ -743,6 +768,10 @@ class GameEngine {
       role: p.role ? p.role.name : "Unassigned",
     }));
 
+    const mafiaMembers = Object.values(this.players)
+      .filter((p) => p.team === "Mafia")
+      .map((p) => p.username);
+
     Object.values(this.players).forEach((p) => {
       // If phase is GAME_OVER, everyone sees all roles. Mod always sees all roles.
       const isOmniscient =
@@ -759,6 +788,8 @@ class GameEngine {
           isAlive: p.isAlive,
           isBlackmailed: p.isBlackmailed,
           executionerTarget: p.executionerTarget || null,
+          hasNightAction: p.role ? p.role.nightAction !== null : false,
+          mafiaMembers: p.team === "Mafia" ? mafiaMembers : [],
         },
       });
     });
